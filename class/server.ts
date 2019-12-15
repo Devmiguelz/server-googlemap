@@ -3,7 +3,7 @@ import { SERVER_PORT } from '../global/environment';
 import socketIO from 'socket.io'
 import http from "http";
 
-import * as webSocket from "../sockets/sockets";
+import * as socket from "../sockets/sockets";
 
 export default class Server {
 
@@ -12,7 +12,7 @@ export default class Server {
     public app:express.Application;
     public port:number;
 
-    public socket:socketIO.Server;
+    public io:socketIO.Server;
     private httpServer: http.Server;
 
     private constructor() {
@@ -20,7 +20,7 @@ export default class Server {
         this.port = SERVER_PORT;   
 
         this.httpServer = new http.Server( this.app );
-        this.socket = socketIO( this.httpServer );
+        this.io = socketIO( this.httpServer );
         this.listenSocket();
     }
 
@@ -31,14 +31,14 @@ export default class Server {
     private listenSocket(){
         console.log('Escuchando Socket');
 
-        this.socket.on('connection', usuario =>{
+        this.io.on('connection', usuario =>{
             console.log('Usuario Conectado');
             
             //Recibir Mensaje
-            webSocket.mensaje( usuario );
+            socket.mensaje( usuario, this.io );
 
             //Desconexion de un Usuario
-            webSocket.desconectar( usuario );
+            socket.desconectar( usuario );
 
         });
     }
