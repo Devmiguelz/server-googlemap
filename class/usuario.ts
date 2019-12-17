@@ -1,12 +1,17 @@
-export class Usuario{
+
+
+export class Usuario {
 
     public id: string;
     public nombre: string;
-    public sala: string;
+    public codsala: number;
 
-    constructor(id: string){
+    constructor( id: string ) { 
+        
         this.id = id;
-        this.nombre = 'sin-nombre'
-        this.sala = 'sin-sala';
+        this.nombre = 'sin-nombre';
+        this.codsala   = 0;
+
     }
+
 }

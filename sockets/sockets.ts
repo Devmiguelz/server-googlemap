@@ -5,22 +5,31 @@ import { Usuario } from '../class/usuario';
 
 export const usuariosConectados = new UsuariosLista();
 
-export const conectarUsuario = ( usuario: Socket) => {
-    const nuevoUsuario = new Usuario( usuario.id );
+export const conectarUsuario = ( usuarioSocket: Socket) => {
+
+    const nuevoUsuario = new Usuario( usuarioSocket.id );
+
     usuariosConectados.agregarUsuario( nuevoUsuario );
+
 }
 
-export const desconectarUsuario = ( usuario: Socket ) => {
+export const desconectarUsuario = ( usuarioSocket: Socket, io: SocketIO.Server ) => {
     
-    usuario.on('disconnect', () => {
+    usuarioSocket.on('disconnect', () => {
+
         console.log('Usuario Desconectado');
-        usuariosConectados.eliminarUsuario( usuario.id );
+
+        usuariosConectados.eliminarUsuario( usuarioSocket.id );
+
+        // Emitimos los usuario Activos
+        io.emit('usuarios-activos', usuariosConectados.obtenerListaUsuario() );
+
     });
 }
 
-export const mensaje = ( usuario: Socket, io: SocketIO.Server ) => {
+export const mensaje = ( usuarioSocket: Socket, io: SocketIO.Server ) => {
 
-    usuario.on('mensaje', ( payload: { de: string, cuerpo: string } ) => {
+    usuarioSocket.on('mensaje', ( payload: { de: string, cuerpo: string } ) => {
         
         console.log('Mensaje Recibido', payload);
 
@@ -29,13 +38,28 @@ export const mensaje = ( usuario: Socket, io: SocketIO.Server ) => {
     });
 }
 
-export const configurarUsuario = ( usuario: Socket, io: SocketIO.Server ) => {
+export const configurarUsuario = ( usuarioSocket: Socket, io: SocketIO.Server ) => {
 
-    usuario.on('configurar-usuario', ( payload: { nombre: string }, callback: Function ) => {
+    usuarioSocket.on('configurar-usuario', ( usuario: Usuario, callback: Function ) => {
         
-        usuariosConectados.actualizarNombre( usuario.id, payload.nombre );
+        // Esta funcion me devuelve el Usuario con su ID socket
+        const usuarioConfigurado = usuariosConectados.actualizarUsuario( usuarioSocket.id, usuario.nombre, usuario.codsala );
+        
+        // Emitimos los usuario Activos
+        io.emit('usuarios-activos', usuariosConectados.obtenerListaUsuario() );
 
-        callback(`Usuario ${payload.nombre} Configurado`);
+        // Enviamos el usuario configurado con su ID socket, se guarda en el LocalStorage
+        callback(usuarioConfigurado);
+
+    });
+}
+
+export const obtenerUsuarios = ( usuarioSocket: Socket, io: SocketIO.Server ) => {
+
+    usuarioSocket.on('obtener-usuarios', ( ) => {
+        
+        // Emitimos los usuario activos solamente a la persona que recien se conectó
+        io.to( usuarioSocket.id ).emit('usuarios-activos', usuariosConectados.obtenerListaUsuario() );
 
     });
 }
