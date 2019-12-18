@@ -156,7 +156,6 @@ router.get('/usuarios/detalle', (rep:Request, res:Response) => {
         
         // Retornamos los usuario suscritos
         res.json({
-            ok: true,
             usuarios: usuariosConectados.obtenerListaUsuario()
         });
 
