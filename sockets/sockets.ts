@@ -2,8 +2,48 @@ import { Socket } from "socket.io";
 import SocketIO from "socket.io";
 import { UsuariosLista } from '../class/usuario-lista';
 import { Usuario } from '../class/usuario';
+import { Ubicacion } from '../class/ubicacion';
+import { mapa } from '../routes/router';
+import { RutaBus } from '../class/ruta-bus';
 
 export const usuariosConectados = new UsuariosLista();
+export const rutabus = new RutaBus();
+
+
+export const marcadorNuevo = ( usuarioSocket: Socket ) => {
+
+    usuarioSocket.on('emitir-marcador-nuevo', ( marcadorNuevo: Ubicacion ) => {
+        mapa.agregarMarcador( marcadorNuevo );
+        // hacemos el broaskast para emitir a todo menos a el mismo
+        usuarioSocket.broadcast.emit('escuchar-marcador-nuevo', marcadorNuevo);
+    });
+}
+
+export const marcadorMover = ( usuarioSocket: Socket, io: SocketIO.Server ) => {
+
+    usuarioSocket.on('emitir-marcador-mover', ( marcador: Ubicacion ) => {
+        mapa.moverMarcador( marcador );
+        rutabus.agregarUbicacionRuta( marcador );
+        // hacemos el broaskast para emitir a todo menos a el mismo
+        usuarioSocket.broadcast.emit('escuchar-marcador-mover', marcador);
+
+        io.emit('escuchar-ruta-repote', marcador);
+    });
+}
+
+export const marcadorBorrar = ( usuarioSocket: Socket ) => {
+
+    usuarioSocket.on('emitir-marcador-borrar', ( id: string ) => {
+        mapa.borrarMarcador( id );
+        // hacemos el broaskast para emitir a todo menos a el mismo
+        usuarioSocket.broadcast.emit('escuchar-marcador-borrar', id);
+    });
+}
+
+
+
+
+
 
 export const conectarUsuario = ( usuarioSocket: Socket) => {
 
