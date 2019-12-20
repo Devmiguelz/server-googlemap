@@ -42,9 +42,11 @@ router.get('/rutas', ( req: Request, res: Response  ) => {
     res.json( rutabus.obtenerRutas() );
 });
 
-// GET - Cargamos todos los puntos de una marcador
-router.get('/rutas/marcador', ( req: Request, res: Response  ) => {
-    res.json( rutabus.obtenerRutas() );
+// GET - Cargamos todos los puntos de un marcador
+router.get('/rutas/marcador/:id', ( req: Request, res: Response  ) => {
+    // Parametro ID del marcador 
+    const id = req.params.id;
+    res.json( rutabus.obtenerRutaMarcador( id ) );
 });
 
 // POST - todos los puntos de un marcador
@@ -59,22 +61,16 @@ router.delete('/eliminar/rutas', ( req: Request, res: Response  ) => {
 });
 
 // POST - todos los puntos de ruta
-router.delete('/eliminar/rutamarcador', ( req: Request, res: Response  ) => {
+router.delete('/eliminar/rutamarcador/:id', ( req: Request, res: Response  ) => {
 
-    const idMarcador = req.body.id;
-    rutabus.eliminarUbicacionMarcador( idMarcador );
+    // Parametro ID del marcador
+    const id = req.params.id;
+    rutabus.eliminarUbicacionMarcador( id );
 
     res.json({
         ok: true,
         mensaje: 'puntos de ruta eliminados'
     });
-});
-
-
-// POST - todos los puntos de un marcador
-router.post('/reporteruta', ( req: Request, res: Response  ) => {
-    const idMarcador = req.body.id;
-    res.json( rutabus.obtenerRutaMarcador( idMarcador ) );
 });
 
 
