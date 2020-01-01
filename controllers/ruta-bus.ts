@@ -1,4 +1,4 @@
-import { Ubicacion } from './ubicacion';
+import { Ubicacion } from '../models/ubicacion';
 
 export class RutaBus {
 

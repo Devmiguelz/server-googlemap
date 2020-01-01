@@ -1,4 +1,4 @@
-import { Usuario } from './usuario';
+import { Usuario } from '../models/usuario';
 /* Aqui se manejara toda la logica los usuario */
 
 export class UsuariosLista{

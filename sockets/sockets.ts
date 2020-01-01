@@ -1,10 +1,10 @@
 import { Socket } from "socket.io";
 import SocketIO from "socket.io";
-import { UsuariosLista } from '../class/usuario-lista';
-import { Usuario } from '../class/usuario';
-import { Ubicacion } from '../class/ubicacion';
-import { mapa } from '../routes/router';
-import { RutaBus } from '../class/ruta-bus';
+import { UsuariosLista } from '../controllers/usuario-lista';
+import { Usuario } from '../models/usuario';
+import { Ubicacion } from '../models/ubicacion';
+import { mapa } from '../routes/rutas';
+import { RutaBus } from '../controllers/ruta-bus';
 
 export const usuariosConectados = new UsuariosLista();
 export const rutabus = new RutaBus();

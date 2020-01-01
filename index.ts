@@ -1,5 +1,4 @@
-import Server from './class/server';
-import router  from './routes/router';
+import Server from './server/server';
 import bodyParser = require('body-parser');
 import  cors  from "cors";
 const server = Server.instance;
@@ -20,8 +19,11 @@ server.app.use( (req, res, next) => {
 });
 
 
-//Configuramos la rutas
-server.app.use('/', router);
+//Configuramos la rutas independientes
+import rutaRoutes from './routes/rutas';
+
+
+server.app.use('/ruta', rutaRoutes);
 
 
 server.start(()=>{
