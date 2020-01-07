@@ -101,6 +101,44 @@ router.get('/rutasxanio/:codanio', ( req: Request, res: Response  ) => {
 
 });
 
+router.get('/rutasmultiples', ( req: Request, res: Response  ) => {
+
+    const arrayRutas = req.body.arrayrutas;
+
+    console.log( arrayRutas );
+
+    if( arrayRutas != [] ) {
+
+        rutaControllers.cargarMultiplesRutas( arrayRutas ).then( ( data: any ) => {
+
+            if( data ) {
+                return res.json({
+                    ok: true,
+                    resp: data
+                });
+            } else {
+                return res.status(400).json({
+                    ok: false,
+                    mensaje: 'NO HAY REGISTROS'
+                });
+            }
+
+        }).catch((err: any) => {
+            return res.status(500).json({
+                ok: false,
+                mensaje: 'ERROR SERVER'
+            });
+        });
+
+    } else {
+        return res.status(400).json({
+            ok: false,
+            mensaje: 'Parametro no recibido'
+        });
+    }
+
+});
+
 // GET - cargamos todos los puntos de las rutas
 router.get('/rutas', ( req: Request, res: Response  ) => {
     res.json( rutabus.obtenerRutas() );
