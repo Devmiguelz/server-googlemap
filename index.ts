@@ -21,9 +21,11 @@ server.app.use( (req, res, next) => {
 
 //Configuramos la rutas independientes
 import rutaRoutes from './routes/rutas';
+import anioRoutes from './routes/anio';
 
 
 server.app.use('/ruta', rutaRoutes);
+server.app.use('/anio', anioRoutes);
 
 
 server.start(()=>{

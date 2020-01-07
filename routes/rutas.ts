@@ -1,11 +1,11 @@
 import { Router, Request, Response } from "express";
-import Ruta from '../models/ruta';
+import RutaControllers from '../controllers/rutaControllers';
 import { Mapa } from '../controllers/mapa';
 import { Ubicacion } from '../models/ubicacion';
 import { rutabus } from "../sockets/sockets";
 
 const router = Router();
-const rutasModel = new Ruta();
+const rutaControllers = new RutaControllers();
 
 // Mapa
 export const mapa = new Mapa();
@@ -42,7 +42,7 @@ router.get('/marcadores', ( req: Request, res: Response  ) => {
 // GET - cargamos todos los puntos de las rutas desde la BD
 router.get('/rutasdb', ( req: Request, res: Response  ) => {
 
-    rutasModel.listarRutas().then( data => {
+    rutaControllers.cargarRutas().then( ( data: any ) => {
 
         if( data ) {
             return res.json({
@@ -56,12 +56,48 @@ router.get('/rutasdb', ( req: Request, res: Response  ) => {
             });
         }
 
-    }).catch(function(err) {
+    }).catch((err: any) => {
         return res.status(500).json({
             ok: false,
             mensaje: 'ERROR SERVER'
         });
     });
+
+});
+
+router.get('/rutasxanio/:codanio', ( req: Request, res: Response  ) => {
+
+    const codanio = req.params.codanio;
+
+    if( codanio != '' ) {
+
+        rutaControllers.cargarRutasxCodanio( codanio ).then( ( data: any ) => {
+
+            if( data ) {
+                return res.json({
+                    ok: true,
+                    resp: data
+                });
+            } else {
+                return res.status(400).json({
+                    ok: false,
+                    mensaje: 'NO HAY REGISTROS'
+                });
+            }
+
+        }).catch((err: any) => {
+            return res.status(500).json({
+                ok: false,
+                mensaje: 'ERROR SERVER'
+            });
+        });
+
+    } else {
+        return res.status(400).json({
+            ok: false,
+            mensaje: 'Parametro no recibido'
+        });
+    }
 
 });
 

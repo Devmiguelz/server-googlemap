@@ -59,6 +59,10 @@ export default class Conexion {
         });
     }
 
+    static escapar( id: string ) {
+        return this.obtenerConexion.con.escape(id);
+    }
+
     private conectarDB() {
 
         this.con.connect( ( err: mysql.MysqlError) => {
