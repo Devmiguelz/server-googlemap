@@ -15,7 +15,7 @@ export default class Conexion {
             host     : 'localhost',
             user     : 'root',
             password : '',
-            database : 'mapas'
+            database : 'altamira'
           });
 
           this.conectarDB();

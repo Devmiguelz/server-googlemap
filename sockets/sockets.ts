@@ -21,13 +21,16 @@ export const marcadorNuevo = ( usuarioSocket: Socket ) => {
 
 export const marcadorMover = ( usuarioSocket: Socket, io: SocketIO.Server ) => {
 
-    usuarioSocket.on('emitir-marcador-mover', ( marcador: Ubicacion ) => {
-        mapa.moverMarcador( marcador );
-        rutabus.agregarUbicacionRuta( marcador );
-        // hacemos el broaskast para emitir a todo menos a el mismo
-        usuarioSocket.broadcast.emit('escuchar-marcador-mover', marcador);
+    usuarioSocket.on('emit-marcador-ruta', ( marcador: Ubicacion ) => {
+        
+        rutabus.agregarUbicacionRuta(marcador.codruta, marcador.flujo, marcador);
 
-        io.emit('escuchar-ruta-repote', marcador);
+        console.log( marcador ); 
+        // rutabus.agregarUbicacionRuta( marcador ); 
+        // hacemos el broaskast para emitir a todo menos a el mismo
+        usuarioSocket.broadcast.emit('listen-marcador-ruta', marcador);
+
+        // io.emit('escuchar-ruta-repote', marcador);
     });
 }
 
@@ -83,7 +86,7 @@ export const configurarUsuario = ( usuarioSocket: Socket, io: SocketIO.Server ) 
     usuarioSocket.on('configurar-usuario', ( usuario: Usuario, callback: Function ) => {
         
         // Esta funcion me devuelve el Usuario con su ID socket
-        const usuarioConfigurado = usuariosConectados.actualizarUsuario( usuarioSocket.id, usuario.nombre, usuario.codsala );
+        const usuarioConfigurado = usuariosConectados.actualizarUsuario( usuarioSocket.id, usuario.nombre, usuario.codruta );
         
         // Emitimos los usuario Activos
         io.emit('usuarios-activos', usuariosConectados.obtenerListaUsuario() );

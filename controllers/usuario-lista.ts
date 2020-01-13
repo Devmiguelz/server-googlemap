@@ -17,13 +17,13 @@ export class UsuariosLista{
         return usuario;
     }
 
-    public actualizarUsuario(id: string, nombre: string, codsala: number){
+    public actualizarUsuario(id: string, nombre: string, codruta: number){
 
         for( let usuario of this.lista ) {
 
             if ( usuario.id === id ) {
                 usuario.nombre = nombre;
-                usuario.codsala = codsala;
+                usuario.codruta = codruta;
                 break;
             }
 
@@ -50,7 +50,7 @@ export class UsuariosLista{
     // Obtener usuario en una sala en particular
     public obtenerUsuarioxSala( codsala: number ) {
 
-        return this.lista.filter( usuario => usuario.codsala === codsala );
+        return this.lista.filter( usuario => usuario.codruta === codsala );
 
     }
 
