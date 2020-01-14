@@ -36,32 +36,20 @@ export default class Server {
 
         this.io.on('connection', usuario =>{
             console.log('Usuario Conectado');
-
-            // Escuchar Marcador Nuevo
-            socket.marcadorNuevo( usuario );
-
-            // Escuchar Marcador Mover
-            socket.marcadorMover( usuario, this.io );
-
-            // Escuchar Marcador Borar
-            socket.marcadorBorrar( usuario );
-
-
-
-            // Conectar Usuario
+            
+            // Conexion y Desconexion del Usuario
             socket.conectarUsuario( usuario );
+            socket.desconectarUsuario( usuario, this.io );
 
+            // Escuchar Marcador Mover - trazar la ruta
+            socket.marcadorMover( usuario, this.io );
             // Configurar Usuario Login
             socket.configurarUsuario( usuario, this.io);
+            // Usuario activa una ruta 
+            socket.usuarioActivoRuta( usuario, this.io);
+            // Usuario desactivo una ruta 
+            socket.usuarioDesactivoRuta( usuario, this.io);
 
-            // Obtener todos los Usuario activos
-            socket.obtenerUsuarios( usuario, this.io);
-
-            // Recibir Mensaje
-            socket.mensaje( usuario, this.io );
-
-            // Desconexion de un Usuario
-            socket.desconectarUsuario( usuario, this.io );
 
         });
     }

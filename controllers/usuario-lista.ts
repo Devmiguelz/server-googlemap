@@ -4,6 +4,7 @@ import { Usuario } from '../models/usuario';
 export class UsuariosLista{
 
     private lista: Usuario[] = [];
+    private listaRutasActivasUsuario: { codruta: number, usuariosActivos: string[] }[] = [];
 
     constructor(){}
 
@@ -17,22 +18,78 @@ export class UsuariosLista{
         return usuario;
     }
 
-    public actualizarUsuario(id: string, nombre: string, codruta: number){
+    public actualizarUsuario( id: string, nombre: string ){
 
         for( let usuario of this.lista ) {
 
             if ( usuario.id === id ) {
                 usuario.nombre = nombre;
-                usuario.codruta = codruta;
                 break;
             }
 
         }
-        console.log('======ACTUALIZADO=======');
-        console.log( this.lista );
 
         const tempUsuario = this.obtenerUsuario( id );
         return tempUsuario;
+    }
+
+    obtenerUsuarioActivoRuta( codruta: number ) {
+        for (const ruta of this.listaRutasActivasUsuario) {
+            if( ruta.codruta === codruta ) {
+                return ruta.usuariosActivos;
+                break;
+            }
+        }
+        return null;
+    }
+
+    agregarRutaActivaUsuario( id: string, codruta: number ) {
+        if( this.listaRutasActivasUsuario.length == 0 ) {
+            this.listaRutasActivasUsuario.push({ codruta:codruta, usuariosActivos: [ id ] } );
+        }else if( this.listaRutasActivasUsuario.find( ruta => ruta.codruta == codruta ) != undefined ){
+            for (const i in this.listaRutasActivasUsuario) {
+                if ( this.listaRutasActivasUsuario[i].codruta == codruta ) {
+                    this.listaRutasActivasUsuario[i].usuariosActivos.push( id );    
+                }
+            }
+        }else {
+            this.listaRutasActivasUsuario.push({ codruta:codruta, usuariosActivos: [ id ] });            
+        }
+        console.log(this.listaRutasActivasUsuario);
+    }
+
+    quitarRutaActivaUsuario( id: string, codruta: number ) {
+
+        for( let i in this.listaRutasActivasUsuario ) {
+
+            if ( this.listaRutasActivasUsuario[i].codruta === codruta ) {
+                this.listaRutasActivasUsuario[i].usuariosActivos = this.removerUsuarioActivo( this.listaRutasActivasUsuario[i].usuariosActivos, id );
+                if( this.listaRutasActivasUsuario[i].usuariosActivos.length === 0) {
+                    this.listaRutasActivasUsuario.splice(Number(i),1);  
+                }
+                break;
+            }
+        }
+        console.log(this.listaRutasActivasUsuario);
+    }
+
+    removerUsuarioActivo( usuarios: string[] , id: string) {
+
+        const i = usuarios.indexOf( id ); 
+    
+        if ( i !== -1 ) {
+            usuarios.splice( i, 1 );
+        }
+
+        return usuarios;
+    }
+
+    public quitarUsuarioTodas( id: string ){
+
+        for( let i in this.listaRutasActivasUsuario ) {
+            this.listaRutasActivasUsuario[i].usuariosActivos = this.removerUsuarioActivo( this.listaRutasActivasUsuario[i].usuariosActivos, id );
+        }
+        this.listaRutasActivasUsuario = this.listaRutasActivasUsuario.filter(ruta => ruta.usuariosActivos.length > 0 );
     }
 
     // Obtener lista de usuarios
@@ -44,13 +101,6 @@ export class UsuariosLista{
     public obtenerUsuario( id: string ) {
 
         return this.lista.find( usuario => usuario.id === id );
-
-    }
-
-    // Obtener usuario en una sala en particular
-    public obtenerUsuarioxSala( codsala: number ) {
-
-        return this.lista.filter( usuario => usuario.codruta === codsala );
 
     }
 
