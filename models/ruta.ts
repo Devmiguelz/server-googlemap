@@ -6,6 +6,6 @@ export class Ruta {
         public codruta: number,
         public flujo: string,
         public puntoUbicacion: Ubicacion[],
-    ) { }
+    ) { } 
 
 }

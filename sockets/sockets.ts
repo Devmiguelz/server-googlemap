@@ -4,9 +4,11 @@ import { UsuariosLista } from '../controllers/usuario-lista';
 import { Usuario } from '../models/usuario';
 import { Ubicacion } from '../models/ubicacion';
 import { RutaBus } from '../controllers/ruta-bus';
+import RutaControllers from '../controllers/rutaControllers';
 
 export const usuariosConectados = new UsuariosLista();
 export const rutabus = new RutaBus();
+const rutaControllers = new RutaControllers();
 
 
 export const usuarioActivoRuta = ( usuarioSocket: Socket, io: SocketIO.Server  ) => {
@@ -36,6 +38,12 @@ export const marcadorMover = ( usuarioSocket: Socket, io: SocketIO.Server ) => {
 
     usuarioSocket.on('emit-marcador-ruta', ( marcador: Ubicacion ) => {
         // Guardamos la ubicacion de la ruta
+        rutaControllers.agregarPreRuta(
+            marcador.codruta,
+            marcador.flujo,1,1,
+            marcador.latitud,
+            marcador.longitud
+        );
         rutabus.agregarUbicacionRuta(marcador.codruta, marcador.flujo, marcador); 
         // Emitimos a los usuarios que estan suscrito a esa ruta
         usuarioSocket.broadcast.to('ruta' + marcador.codruta + '-flujo' + marcador.flujo).emit('listen-marcador-ruta', marcador);
@@ -56,8 +64,6 @@ export const desconectarUsuario = ( usuarioSocket: Socket, io: SocketIO.Server )
     usuarioSocket.on('disconnect', () => {
 
         console.log('Usuario Desconectado');
-
-        usuariosConectados.quitarUsuarioTodas( usuarioSocket.id );
 
         usuariosConectados.eliminarUsuario( usuarioSocket.id );
 

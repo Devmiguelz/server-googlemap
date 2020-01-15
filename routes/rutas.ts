@@ -1,20 +1,10 @@
 import { Router, Request, Response } from "express";
 import RutaControllers from '../controllers/rutaControllers';
-import { Mapa } from '../controllers/mapa';
 import { rutabus } from "../sockets/sockets";
 import { Ruta } from "../models/ruta";
 
 const router = Router();
 const rutaControllers = new RutaControllers();
-
-// Mapa
-export const mapa = new Mapa();
-
-
-// GET - todos los marcadores
-router.get('/marcadores', ( req: Request, res: Response  ) => {
-    res.json( mapa.getMarcadores() );
-});
 
 // GET - cargamos todos los puntos de las rutas desde la BD
 router.get('/rutasdb', ( req: Request, res: Response  ) => {
@@ -153,46 +143,6 @@ router.get('/vehiculoruta/:codanio/:dia/:flujo', ( req: Request, res: Response  
 
 });
 
-router.get('/vehiculoruta/:codanio/:dia/:flujo', ( req: Request, res: Response  ) => {
-
-    // Parametros URL
-    const codanio = Number(req.params.codanio);
-    const dia = Number(req.params.dia);
-    const flujo = req.params.flujo.toString();
-    
-    if( codanio != null && dia != null && flujo != '') {
-
-        rutaControllers.cargarVehiculoRuta( codanio, dia, flujo ).then( ( data: any ) => {
-
-            if( data ) {
-                return res.json({
-                    ok: true,
-                    resp: data
-                });
-            }else {
-                return res.json({
-                    ok: false,
-                    resp: 'No se obtuvo información'
-                });
-            }
-
-        }).catch((err: any) => {
-            return res.status(500).json({
-                ok: false,
-                mensaje: 'ERROR SERVER: ' + err
-            });
-        });
-
-    } else {
-        return res.status(400).json({
-            ok: false,
-            mensaje: 'Parametro no recibido'
-        });
-    }
-
-});
-
-
 router.post('/estudiante/transporte', ( req: Request, res: Response  ) => {
 
     const { codanio, mes, codvehiculoruta, fecha, flujo } = req.body;
@@ -241,7 +191,7 @@ router.get('/cargarpuntos/:codruta/:flujo', ( req: Request, res: Response  ) => 
         return res.json({
             ok: true,
             resp: ruta 
-        });
+        }); 
     }else {
         return res.json({
             ok: false,
@@ -249,7 +199,7 @@ router.get('/cargarpuntos/:codruta/:flujo', ( req: Request, res: Response  ) => 
         });
     }
 
-});
+});  
 
 // POST - todos los puntos de un marcador
 router.post('/activar', ( req: Request, res: Response  ) => {

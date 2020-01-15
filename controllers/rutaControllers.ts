@@ -4,24 +4,18 @@ import Conexion from '../database/conexion';
 
     constructor() {}
 
-    agregarRuta(codruta: number, flujo: string, codusuario: number, latitude: number, longitude: number) {
+    agregarPreRuta(codruta: number, flujo: string, codusuario: number, orden: number, latitude: number, longitude: number) {
 
-        return new Promise(( resolve, reject ) => {
+        const consulta = 'INSERT INTO tra_preruta SET ?';
 
-            const consulta = 'INSERT INTO tra_preruta SET ?';
+        const data = {codruta, flujo, codusuario, orden, latitude, longitude};
 
-            const data = {codruta, flujo, codusuario, latitude, longitude};
+        Conexion.ejecutarInsert( consulta, data, ( err: any, results: number ) => {
 
-            Conexion.ejecutarInsert( consulta, data, ( err: any, results: number ) => {
-
-                if (err) {
-                    return reject( err );
-                }
-
-                resolve( results );
-
-            });
-
+            if (err) {
+                throw err;
+            }
+            
         });
     }
 
