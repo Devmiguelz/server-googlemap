@@ -11,18 +11,23 @@ export const rutabus = new RutaBus();
 
 export const usuarioActivoRuta = ( usuarioSocket: Socket, io: SocketIO.Server  ) => {
 
-    usuarioSocket.on('emit-usuario-activo-ruta', ( codruta: number ) => {
+    usuarioSocket.on('emit-usuario-activo-ruta', ( ruta: { codruta: number,flujo: string } ) => {
        
-        usuariosConectados.agregarRutaActivaUsuario( usuarioSocket.id, codruta );
+        // agregamos el usuario a la sala 
+        // Quedará suscrito a esa ruta
+        // cuando esa ruta mita le llegara solo a los que enten suscrito
+        usuarioSocket.join('ruta' + ruta.codruta + '-flujo' + ruta.flujo);
 
     });
 }
 
 export const usuarioDesactivoRuta = ( usuarioSocket: Socket, io: SocketIO.Server  ) => {
 
-    usuarioSocket.on('emit-usuario-desactivo-ruta', ( codruta: number ) => {
+    usuarioSocket.on('emit-usuario-desactivo-ruta', ( ruta: { codruta: number,flujo: string }  ) => {
 
-        usuariosConectados.quitarRutaActivaUsuario( usuarioSocket.id, codruta );
+        // de esta forma sacamos al usuario de la sala
+        // no recibirá mas punto de esa ruta
+        usuarioSocket.leave('ruta' + ruta.codruta + '-flujo' + ruta.flujo);
 
     });
 }
@@ -30,18 +35,10 @@ export const usuarioDesactivoRuta = ( usuarioSocket: Socket, io: SocketIO.Server
 export const marcadorMover = ( usuarioSocket: Socket, io: SocketIO.Server ) => {
 
     usuarioSocket.on('emit-marcador-ruta', ( marcador: Ubicacion ) => {
-        
-        rutabus.agregarUbicacionRuta(marcador.codruta, marcador.flujo, marcador);
-
-        const usuarioConRutaActiva = usuariosConectados.obtenerUsuarioActivoRuta( marcador.codruta );
-
-        if( usuarioConRutaActiva != null ) {
-            console.log( usuarioConRutaActiva );
-            for (let i = 0; i < usuarioConRutaActiva.length; i++) {
-                // hacemos el broaskast para emitir a todo menos a el mismo
-                usuarioSocket.broadcast.to( usuarioConRutaActiva[i] ).emit('listen-marcador-ruta', marcador);
-            }
-        }
+        // Guardamos la ubicacion de la ruta
+        rutabus.agregarUbicacionRuta(marcador.codruta, marcador.flujo, marcador); 
+        // Emitimos a los usuarios que estan suscrito a esa ruta
+        usuarioSocket.broadcast.to('ruta' + marcador.codruta + '-flujo' + marcador.flujo).emit('listen-marcador-ruta', marcador);
 
     });
 }

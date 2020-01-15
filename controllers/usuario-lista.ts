@@ -13,8 +13,6 @@ export class UsuariosLista{
 
         this.lista.push(usuario);
 
-        console.log( this.lista );
-
         return usuario;
     }
 
@@ -28,6 +26,9 @@ export class UsuariosLista{
             }
 
         }
+
+        console.log('--------USUARIOS ACTUALIZADOS--------');
+        console.log( this.lista );
 
         const tempUsuario = this.obtenerUsuario( id );
         return tempUsuario;
