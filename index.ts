@@ -18,6 +18,8 @@ server.app.use( (req, res, next) => {
     next();
 });
 
+// Configuracion de Entorno - production=1, development=0
+process.env.NODE_ENV = "development";
 
 //Configuramos la rutas independientes
 import rutaRoutes from './routes/rutas';

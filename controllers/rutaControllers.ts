@@ -4,13 +4,13 @@ import Conexion from '../database/conexion';
 
     constructor() {}
 
-    agregarPreRuta(codruta: number, flujo: string, codusuario: number, orden: number, latitude: number, longitude: number) {
+    agregarPreRuta( colegio: string, codruta: number, flujo: string, codusuario: number, orden: number, latitude: number, longitude: number) {
 
         const consulta = 'INSERT INTO tra_preruta SET ?';
 
         const data = {codruta, flujo, codusuario, orden, latitude, longitude};
 
-        Conexion.ejecutarInsert( consulta, data, ( err: any, results: number ) => {
+        Conexion.ejecutarInsert( colegio, consulta, data, ( err: any, results: number ) => {
 
             if (err) {
                 throw err;
@@ -19,13 +19,13 @@ import Conexion from '../database/conexion';
         });
     }
 
-    cargarRutas() {
+    cargarRutasxCodanio( colegio: string, codanio: string ) {
 
         return new Promise(( resolve, reject ) => {
-            
-            const consulta = 'SELECT * FROM tra_preruta';
 
-            Conexion.ejecutarQuery(consulta, ( err: any, results: Object[] ) => {
+            const consulta = `SELECT * FROM tes_rutas WHERE codanio = ${ codanio } ORDER BY orden ASC`;
+
+            Conexion.ejecutarQuery( colegio, consulta, ( err: any, results: Object[] ) => {
 
                 if( err ) {
                     if (err) {
@@ -38,15 +38,13 @@ import Conexion from '../database/conexion';
         });
     }
 
-    cargarRutasxCodanio( codanio: string ) {
+    cargarRutasxCod( colegio: string, cod: string ) {
 
         return new Promise(( resolve, reject ) => {
 
-            const codanioEsc = Conexion.escapar( codanio );
+            const consulta = `SELECT * FROM tes_rutas r WHERE r.codanio=${ cod } ORDER BY r.orden,r.nroruta`;
 
-            const consulta = `SELECT * FROM tes_rutas WHERE codanio = ${ codanioEsc } ORDER BY orden ASC`;
-
-            Conexion.ejecutarQuery(consulta, ( err: any, results: Object[] ) => {
+            Conexion.ejecutarQuery( colegio, consulta, ( err: any, results: Object[] ) => {
 
                 if( err ) {
                     if (err) {
@@ -59,54 +57,7 @@ import Conexion from '../database/conexion';
         });
     }
 
-    cargarRutasxCod( cod: string ) {
-
-        return new Promise(( resolve, reject ) => {
-
-            const codanioEsc = Conexion.escapar( cod );
-
-            const consulta = `SELECT * FROM tes_rutas r WHERE r.codanio=${ codanioEsc } ORDER BY r.orden,r.nroruta`;
-
-            Conexion.ejecutarQuery(consulta, ( err: any, results: Object[] ) => {
-
-                if( err ) {
-                    if (err) {
-                        return reject( err );
-                    }
-                } else {
-                    resolve( results );
-                }
-            });
-        });
-    }
-
-    cargarMultiplesRutas( arrayRutas: string[] ) {
-
-        return new Promise(( resolve, reject ) => {
-
-            let where: string = '';
-
-            for (let index in arrayRutas) {
-                where += ` cod=${ arrayRutas[index] } `;
-                where += Number(index) != arrayRutas.length - 1 ? ' OR ' : '';
-            }
-
-            const consulta = `SELECT * FROM tes_rutas WHERE ${ where } ORDER BY orden ASC`;
-
-            Conexion.ejecutarQuery(consulta, ( err: any, results: Object[] ) => {
-
-                if( err ) {
-                    if (err) {
-                        return reject( err );
-                    }
-                } else {
-                    resolve( results );
-                }
-            });
-        });
-    }
-
-    cargarVehiculoRuta(codanio: number, dia: number, flujo: string) {
+    cargarVehiculoRuta( colegio: string, codanio: number, dia: number, flujo: string) {
 
         return new Promise(( resolve, reject ) => {
 
@@ -121,7 +72,7 @@ import Conexion from '../database/conexion';
             INNER JOIN tra_personal p ON vr.codconductor=p.cod
             WHERE r.codanio=${ codanio } AND vr.dia=${ dia } AND vr.flujo=${ flujo } ORDER BY r.orden,r.nroruta `;
 
-            Conexion.ejecutarQuery(consulta, ( err: any, results: Object[] ) => {
+            Conexion.ejecutarQuery( colegio, consulta, ( err: any, results: Object[] ) => {
 
                 if( err ) {
                     if (err) {
@@ -134,7 +85,7 @@ import Conexion from '../database/conexion';
         });
     }
 
-    async cargarEstudianteTransporte(codanio: string, mes: string , codvehiculoruta: string, fecha: string, flujo: string) {
+    async cargarEstudianteTransporte( colegio: string, codanio: string, mes: string , codvehiculoruta: string, fecha: string, flujo: string) {
 
         return new Promise(( resolve, reject ) => {
 
@@ -205,7 +156,7 @@ import Conexion from '../database/conexion';
                 AND em.codanio=${ codanio } AND r.codanio=${ codanio } AND m.orden=${ mes } ORDER BY nombreestudiante`;
             }
 
-            Conexion.ejecutarQuery(consulta, ( err: any, results: Object[] ) => {
+            Conexion.ejecutarQuery( colegio, consulta, ( err: any, results: Object[] ) => {
 
                 if( err ) {
                     if (err) {

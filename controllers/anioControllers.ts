@@ -4,13 +4,13 @@ import Conexion from "../database/conexion";
 
     constructor() {}
 
-    cargarAnios() {
+    cargarAnios( colegio: string ) {
 
         return new Promise(( resolve, reject ) => {
             
             const consulta = 'SELECT * FROM con_aniolectivo';
 
-            Conexion.ejecutarQuery(consulta, ( err: any, results: Object[] ) => {
+            Conexion.ejecutarQuery( colegio, consulta, ( err: any, results: Object[] ) => {
 
                 if( err ) {
                     if (err == 'No hay registros') {
@@ -25,13 +25,13 @@ import Conexion from "../database/conexion";
         });
     }
 
-    cargarAnioActivo() {
+    cargarAnioActivo( colegio: string ) {
 
         return new Promise(( resolve, reject ) => {
             
             const consulta = "SELECT * FROM con_aniolectivo WHERE estado='On' ORDER BY anio ASC";
 
-            Conexion.ejecutarQuery(consulta, ( err: any, results: Object[] ) => {
+            Conexion.ejecutarQuery( colegio, consulta, ( err: any, results: Object[] ) => {
 
                 if( err ) {
                     if (err == 'No hay registros') {

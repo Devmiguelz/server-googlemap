@@ -5,9 +5,11 @@ const router = Router();
 const anioControllers = new AnioControllers();
 
 // GET - cargamos el anio activo
-router.get('/anioactivo', ( req: Request, res: Response  ) => {
+router.get('/anioactivo/:colegio', ( req: Request, res: Response  ) => {
 
-    anioControllers.cargarAnioActivo().then( ( data: any ) => {
+    const colegio = req.params.colegio;
+
+    anioControllers.cargarAnioActivo( colegio ).then( ( data: any ) => {
 
         return res.json({
             ok: true,
@@ -17,16 +19,18 @@ router.get('/anioactivo', ( req: Request, res: Response  ) => {
     }).catch((err: any) => {
         return res.status(500).json({
             ok: false,
-            mensaje: 'ERROR SERVER'
+            mensaje: 'ERROR: ' + err
         });
     });
 
 });
 
 // GET - cargamos los anios
-router.get('/cargaranios', ( req: Request, res: Response  ) => {
+router.get('/cargaranios/:colegio', ( req: Request, res: Response  ) => {
 
-    anioControllers.cargarAnios().then( ( data: any ) => {
+    const colegio = req.params.colegio;
+
+    anioControllers.cargarAnios( colegio ).then( ( data: any ) => {
 
         return res.json({
             ok: true,
@@ -36,7 +40,7 @@ router.get('/cargaranios', ( req: Request, res: Response  ) => {
     }).catch((err: any) => {
         return res.status(500).json({
             ok: false,
-            mensaje: 'ERROR SERVER'
+            mensaje: 'ERROR: ' + err
         });
     });
 

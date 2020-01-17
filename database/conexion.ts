@@ -1,80 +1,92 @@
 import mysql = require('mysql');
-
+import { DATABASES } from '../global/environment';
 
 export default class Conexion {
 
     private static _instancia: Conexion;
+  
+    poolCluster: mysql.PoolCluster;
 
-    
-    con: mysql.Connection;
-    estadoConexion: boolean = false;
-    
-    constructor () {
+    constructor () { 
 
-        this.con = mysql.createConnection({
-            host     : 'localhost',
-            user     : 'root',
-            password : '',
-            database : 'altamira'
-          });
+        this.poolCluster = mysql.createPoolCluster();
+        console.log( process.env.NODE_ENV );
+        if ( process.env.NODE_ENV == 'production' ) {
+            this.poolCluster.add('altamira', DATABASES.production.altamira); 
+            this.poolCluster.add('gcb', DATABASES.production.gcb);
+            this.poolCluster.add('lcr', DATABASES.production.lcr);
+        }else {
+            this.poolCluster.add('altamira', DATABASES.development.altamira); 
+            this.poolCluster.add('gcb', DATABASES.development.gcb);
+            this.poolCluster.add('lcr', DATABASES.development.lcr);
+        }
 
-          this.conectarDB();
+        console.log('CONEXIONES INIT');
     }
 
-    public static get obtenerConexion () {
+    public static get obtenerConexion( ) {
         return this._instancia || ( this._instancia = new this() )
     }
 
-    static ejecutarQuery( consulta: string, callback: Function ) {
+    static ejecutarQuery( conexion: string, consulta: string, callback: Function ) {
 
-        this.obtenerConexion.con.query( consulta, ( err, results: Object[], fields ) => {
-            if( err ){
-                console.log('ERROR QUERY');
-                console.log( err );
-                return callback( err );
-            }
+        this.obtenerConexion.poolCluster.getConnection( conexion, ( errorConect: mysql.MysqlError, connection: mysql.PoolConnection ) => {
 
-            if( results.length === 0) {
-                callback('No hay registros');
-            }else{
-                callback( null, results );
-            }
+            if (errorConect){
+                callback( errorConect.message ); // no conectado!
+            } 
+
+            connection.query( consulta, ( err, results: Object[], fields ) => {
+
+                // soltar la conexion
+                connection.release();
+
+                if( err ){
+                    console.log('ERROR QUERY');
+                    console.log( err );
+                    return callback( err );
+                }
+    
+                if( results.length === 0) {
+                    callback('No hay registros');
+                }else{
+                    callback( null, results );
+                }
+    
+            });
+
         });
+        
     }
 
-    static ejecutarInsert( consulta: string, datos: Object, callback: Function ) {
+    static ejecutarInsert(  conexion: string, consulta: string, datos: Object, callback: Function ) {
 
-        this.obtenerConexion.con.query( consulta, datos, ( err, results, fields ) => {
-            if( err ){
-                console.log('ERROR QUERY');
-                console.log( err );
-                return callback( err );
-            }
 
-            if( results.insertId != -1) {
-                callback( null, results.insertId );
-            }else{
-                callback('Registro No Insertado');
-            }
+        this.obtenerConexion.poolCluster.getConnection( conexion, ( errorConect: mysql.MysqlError, connection: mysql.PoolConnection ) => {
+
+            if (errorConect){
+                callback( errorConect.message ); // no conectado!
+            } 
+                
+            connection.query( consulta, datos, ( err, results, fields ) => {
+                
+                // soltar la conexion
+                connection.release();
+
+                if( err ){
+                    console.log('ERROR QUERY');
+                    console.log( err );
+                    return callback( err );
+                }
+
+                if( results.insertId != -1) {
+                    callback( null, results.insertId );
+                }else{
+                    callback('Registro No Insertado');
+                }
+
+            });
         });
-    }
-
-    static escapar( id: string ) {
-        return this.obtenerConexion.con.escape(id);
-    }
-
-    private conectarDB() {
-
-        this.con.connect( ( err: mysql.MysqlError) => {
-            if (err) {
-              console.error('ERROR: ' + err.message);
-              return;
-            }
-
-            this.estadoConexion = true;
-            console.log('Conexion Exitosa!');
-          });
-          
     }
 
 }

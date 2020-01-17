@@ -39,6 +39,7 @@ export const marcadorMover = ( usuarioSocket: Socket, io: SocketIO.Server ) => {
     usuarioSocket.on('emit-marcador-ruta', ( marcador: Ubicacion ) => {
         // Guardamos la ubicacion de la ruta
         rutaControllers.agregarPreRuta(
+            marcador.colegio,
             marcador.codruta,
             marcador.flujo,1,1,
             marcador.latitud,

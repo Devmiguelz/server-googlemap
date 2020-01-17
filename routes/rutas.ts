@@ -6,39 +6,14 @@ import { Ruta } from "../models/ruta";
 const router = Router();
 const rutaControllers = new RutaControllers();
 
-// GET - cargamos todos los puntos de las rutas desde la BD
-router.get('/rutasdb', ( req: Request, res: Response  ) => {
+router.get('/rutasxanio/:colegio/:codanio', ( req: Request, res: Response  ) => {
 
-    rutaControllers.cargarRutas().then( ( data: any ) => {
-
-        if( data ) {
-            return res.json({
-                ok: true,
-                resp: data
-            });
-        }else {
-            return res.json({
-                ok: false,
-                resp: 'No se obtuvo información'
-            });
-        }
-
-    }).catch((err: any) => {
-        return res.status(500).json({
-            ok: false,
-            mensaje: 'ERROR SERVER'
-        });
-    });
-
-});
-
-router.get('/rutasxanio/:codanio', ( req: Request, res: Response  ) => {
-
+    const colegio = req.params.colegio;
     const codanio = req.params.codanio;
 
     if( codanio != '' ) {
 
-        rutaControllers.cargarRutasxCodanio( codanio ).then( ( data: any ) => {
+        rutaControllers.cargarRutasxCodanio( colegio, codanio ).then( ( data: any ) => {
 
             if( data ) {
                 return res.json({
@@ -55,7 +30,7 @@ router.get('/rutasxanio/:codanio', ( req: Request, res: Response  ) => {
         }).catch((err: any) => {
             return res.status(500).json({
                 ok: false,
-                mensaje: 'ERROR SERVER'
+                mensaje: 'ERROR: ' + err
             });
         });
 
@@ -68,52 +43,17 @@ router.get('/rutasxanio/:codanio', ( req: Request, res: Response  ) => {
 
 });
 
-router.post('/rutasmultiples', ( req: Request, res: Response  ) => {
-
-    const arrayRutas = req.body.body.arrayrutas;
-    
-    if( arrayRutas != [] ) {
-
-        rutaControllers.cargarMultiplesRutas( arrayRutas ).then( ( data: any ) => {
-
-            if( data ) {
-                return res.json({
-                    ok: true,
-                    resp: data
-                });
-            }else {
-                return res.json({
-                    ok: false,
-                    resp: 'No se obtuvo información'
-                });
-            }
-
-        }).catch((err: any) => {
-            return res.status(500).json({
-                ok: false,
-                mensaje: 'ERROR SERVER: ' + err
-            });
-        });
-
-    } else {
-        return res.status(400).json({
-            ok: false,
-            mensaje: 'Parametro no recibido'
-        });
-    }
-
-});
-
-router.get('/vehiculoruta/:codanio/:dia/:flujo', ( req: Request, res: Response  ) => {
+router.get('/vehiculoruta/:colegio/:codanio/:dia/:flujo', ( req: Request, res: Response  ) => {
 
     // Parametros URL
+    const colegio = req.params.colegio;
     const codanio = Number(req.params.codanio);
     const dia = Number(req.params.dia);
     const flujo = req.params.flujo.toString();
     
-    if( codanio != null && dia != null && flujo != '') {
+    if( colegio != null && codanio != null && dia != null && flujo != '') {
 
-        rutaControllers.cargarVehiculoRuta( codanio, dia, flujo ).then( ( data: any ) => {
+        rutaControllers.cargarVehiculoRuta( colegio, codanio, dia, flujo ).then( ( data: any ) => {
 
             if( data ) {
                 return res.json({
@@ -130,7 +70,7 @@ router.get('/vehiculoruta/:codanio/:dia/:flujo', ( req: Request, res: Response  
         }).catch((err: any) => {
             return res.status(500).json({
                 ok: false,
-                mensaje: 'ERROR SERVER: ' + err
+                mensaje: 'ERROR: ' + err
             });
         });
 
@@ -145,11 +85,11 @@ router.get('/vehiculoruta/:codanio/:dia/:flujo', ( req: Request, res: Response  
 
 router.post('/estudiante/transporte', ( req: Request, res: Response  ) => {
 
-    const { codanio, mes, codvehiculoruta, fecha, flujo } = req.body;
+    const { colegio, codanio, mes, codvehiculoruta, fecha, flujo } = req.body;
     
-    if( codanio != '' && mes != '' && codvehiculoruta != '' && fecha != '' && flujo != '') {
+    if( colegio!= '' && codanio != '' && mes != '' && codvehiculoruta != '' && fecha != '' && flujo != '') {
 
-        rutaControllers.cargarEstudianteTransporte(codanio, mes, codvehiculoruta, fecha, flujo).then( ( data: any ) => {
+        rutaControllers.cargarEstudianteTransporte( colegio, codanio, mes, codvehiculoruta, fecha, flujo).then( ( data: any ) => {
 
             if( data ) {
                 return res.json({
@@ -166,7 +106,7 @@ router.post('/estudiante/transporte', ( req: Request, res: Response  ) => {
         }).catch((err: any) => {
             return res.status(500).json({
                 ok: false,
-                mensaje: 'ERROR SERVER: ' + err
+                mensaje: 'ERROR: ' + err
             });
         });
 
@@ -223,7 +163,6 @@ router.post('/activar', ( req: Request, res: Response  ) => {
 // POST - todos los puntos de un marcador
 router.delete('/cerrar', ( req: Request, res: Response  ) => {
 
-    console.log( req.body );
     const { codruta, flujo } = req.body;
 
     if( rutabus.cerrarRuta( codruta, flujo ) ) {
