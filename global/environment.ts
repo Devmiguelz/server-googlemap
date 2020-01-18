@@ -5,25 +5,11 @@ export const DATABASES = {
 
     'development': { /* VARIABLES DE DESARROLLO */
         
-        altamira:{
+        localhost:{
             host       : '127.0.0.1',
             user       : 'root',
             password   : '',
             database   : 'altamira',
-            connectionLimit     : 10,
-        },
-        gcb:{
-            host       : '127.0.0.1',
-            user       : 'root',
-            password   : '',
-            database   : 'gcb',
-            connectionLimit     : 10,
-        },
-        lcr:{
-            host       : '127.0.0.1',
-            user       : 'root',
-            password   : '',
-            database   : 'gcb',
             connectionLimit     : 10,
         }
     },

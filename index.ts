@@ -22,11 +22,11 @@ server.app.use( (req, res, next) => {
 process.env.NODE_ENV = "development";
 
 //Configuramos la rutas independientes
-import rutaRoutes from './routes/rutas';
+import transporteRoutes from './routes/transporte';
 import anioRoutes from './routes/anio';
 
 
-server.app.use('/ruta', rutaRoutes);
+server.app.use('/transporte', transporteRoutes);
 server.app.use('/anio', anioRoutes);
 
 

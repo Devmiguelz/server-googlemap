@@ -1,10 +1,46 @@
 import { Router, Request, Response } from "express";
-import RutaControllers from '../controllers/rutaControllers';
+import TrasnporteControllers from '../controllers/transporteControllers';
 import { rutabus } from "../sockets/sockets";
 import { Ruta } from "../models/ruta";
 
 const router = Router();
-const rutaControllers = new RutaControllers();
+const transporte = new TrasnporteControllers();
+
+
+// POST - Iniciar la ruta
+router.post('/iniciarRuta', ( req: Request, res: Response  ) => {
+
+    const { codvehiculoruta, codusuario, tipoapp, conec } = req.body;
+
+    transporte.iniciarRuta( codvehiculoruta, codusuario, tipoapp, conec ).then((data: any) => {
+        res.json({
+            success: true,
+            mensaje: data
+        });
+    }).catch((err: any) => {
+        return res.status(500).json({
+            ok: false,
+            mensaje: 'ERROR: ' + err
+        });
+    });
+
+});
+
+// POST - Guardar los puntos Offonline
+router.post('/guardarRutaOffline', ( req: Request, res: Response  ) => {
+
+    const { listaSeguimiento, codvehiculoruta, fechasubir, conec } = req.body;
+
+    transporte.guardarRutaOffline( listaSeguimiento, codvehiculoruta, fechasubir, conec ).then((data: any) => {
+        res.json( data );
+    }).catch((err: any) => {
+        return res.status(500).json({
+            success: false,
+            mensaje: 'ERROR: ' + err
+        });
+    });
+    
+});
 
 router.get('/rutasxanio/:colegio/:codanio', ( req: Request, res: Response  ) => {
 
@@ -13,7 +49,7 @@ router.get('/rutasxanio/:colegio/:codanio', ( req: Request, res: Response  ) => 
 
     if( codanio != '' ) {
 
-        rutaControllers.cargarRutasxCodanio( colegio, codanio ).then( ( data: any ) => {
+        transporte.cargarRutasxCodanio( colegio, codanio ).then( ( data: any ) => {
 
             if( data ) {
                 return res.json({
@@ -53,7 +89,7 @@ router.get('/vehiculoruta/:colegio/:codanio/:dia/:flujo', ( req: Request, res: R
     
     if( colegio != null && codanio != null && dia != null && flujo != '') {
 
-        rutaControllers.cargarVehiculoRuta( colegio, codanio, dia, flujo ).then( ( data: any ) => {
+        transporte.cargarVehiculoRuta( colegio, codanio, dia, flujo ).then( ( data: any ) => {
 
             if( data ) {
                 return res.json({
@@ -89,7 +125,7 @@ router.post('/estudiante/transporte', ( req: Request, res: Response  ) => {
     
     if( colegio!= '' && codanio != '' && mes != '' && codvehiculoruta != '' && fecha != '' && flujo != '') {
 
-        rutaControllers.cargarEstudianteTransporte( colegio, codanio, mes, codvehiculoruta, fecha, flujo).then( ( data: any ) => {
+        transporte.cargarEstudianteTransporte( colegio, codanio, mes, codvehiculoruta, fecha, flujo).then( ( data: any ) => {
 
             if( data ) {
                 return res.json({
@@ -140,25 +176,6 @@ router.get('/cargarpuntos/:codruta/:flujo', ( req: Request, res: Response  ) => 
     }
 
 });  
-
-// POST - todos los puntos de un marcador
-router.post('/activar', ( req: Request, res: Response  ) => {
-
-    const { codruta, flujo } = req.body;
-
-    if( rutabus.activarRuta( codruta, flujo ) ) {
-        res.json({
-            ok: true,
-            mensaje: `Ruta ${ codruta } Activada`
-        });
-    }else {
-        res.json({
-            ok: false,
-            mensaje: `La ruta ${ codruta } se encuentra activa`
-        });
-    }
-
-});
 
 // POST - todos los puntos de un marcador
 router.delete('/cerrar', ( req: Request, res: Response  ) => {

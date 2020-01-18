@@ -4,11 +4,11 @@ import { UsuariosLista } from '../controllers/usuario-lista';
 import { Usuario } from '../models/usuario';
 import { Ubicacion } from '../models/ubicacion';
 import { RutaBus } from '../controllers/ruta-bus';
-import RutaControllers from '../controllers/rutaControllers';
+import TrasnporteControllers from '../controllers/transporteControllers';
 
 export const usuariosConectados = new UsuariosLista();
 export const rutabus = new RutaBus();
-const rutaControllers = new RutaControllers();
+const transporte = new TrasnporteControllers();
 
 
 export const usuarioActivoRuta = ( usuarioSocket: Socket, io: SocketIO.Server  ) => {
@@ -38,7 +38,7 @@ export const marcadorMover = ( usuarioSocket: Socket, io: SocketIO.Server ) => {
 
     usuarioSocket.on('emit-marcador-ruta', ( marcador: Ubicacion ) => {
         // Guardamos la ubicacion de la ruta
-        rutaControllers.agregarPreRuta(
+        transporte.agregarPreRuta(
             marcador.colegio,
             marcador.codruta,
             marcador.flujo,1,1,
