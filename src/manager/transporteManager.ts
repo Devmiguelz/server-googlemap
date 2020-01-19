@@ -1,4 +1,3 @@
-
 import Conexion from '../database/conexion';
 import { MysqlError } from 'mysql';
 import { Funciones } from './funciones';

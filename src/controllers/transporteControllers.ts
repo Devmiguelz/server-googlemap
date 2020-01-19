@@ -1,6 +1,5 @@
 import Conexion from '../database/conexion';
 import TrasnporteManager from '../manager/transporteManager';
-import moment from 'moment';
 import UsuarioManager from '../manager/usuarioManager';
 import { Funciones } from '../manager/funciones';
 

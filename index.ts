@@ -1,4 +1,4 @@
-import Server from './server/server';
+import Server from './src/server/server';
 import bodyParser = require('body-parser');
 import  cors  from "cors";
 const server = Server.instance;
@@ -22,8 +22,8 @@ server.app.use( (req, res, next) => {
 process.env.NODE_ENV = "development";
 
 //Configuramos la rutas independientes
-import transporteRoutes from './routes/transporte';
-import anioRoutes from './routes/anio';
+import transporteRoutes from './src/routes/transporte';
+import anioRoutes from './src/routes/anio';
 
 
 server.app.use('/transporte', transporteRoutes);
