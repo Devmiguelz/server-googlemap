@@ -37,14 +37,7 @@ export const usuarioDesactivoRuta = ( usuarioSocket: Socket, io: SocketIO.Server
 export const marcadorMover = ( usuarioSocket: Socket, io: SocketIO.Server ) => {
 
     usuarioSocket.on('emit-marcador-ruta', ( marcador: Ubicacion ) => {
-        // Guardamos la ubicacion de la ruta
-        transporte.agregarPreRuta(
-            marcador.colegio,
-            marcador.codruta,
-            marcador.flujo,1,1,
-            marcador.latitud,
-            marcador.longitud
-        );
+        
         rutabus.agregarUbicacionRuta(marcador.codruta, marcador.flujo, marcador); 
         // Emitimos a los usuarios que estan suscrito a esa ruta
         usuarioSocket.broadcast.to('ruta' + marcador.codruta + '-flujo' + marcador.flujo).emit('listen-marcador-ruta', marcador);

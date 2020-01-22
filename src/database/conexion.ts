@@ -1,5 +1,6 @@
 import mysql = require('mysql');
 import { DATABASES } from '../global/environment';
+import { MysqlError } from 'mysql';
 
 export default class Conexion {
 
@@ -33,18 +34,41 @@ export default class Conexion {
                 callback( errorConect.message ); // no conectado!
             } 
 
-            connection.query( consulta, ( err, results: Object[], fields ) => {
+            connection.query( consulta, ( err, results, fields ) => {
 
                 // soltar la conexion
                 connection.release();
 
                 if( err ){
-                    console.log('ERROR QUERY');
-                    console.log( err );
-                    return callback( err );
+                    console.log('ERROR QUERY: ' + consulta );
+                    callback( err.message );
                 }
                 callback( null, results );
-                
+            });
+
+            // console.log(query.sql);
+        });
+        
+    }
+
+    static ejecutarQueryParam( conexion: string, consulta: string, datos: Object, callback: Function ) {
+
+        this.obtenerConexion.poolCluster.getConnection( conexion, ( errorConect: mysql.MysqlError, connection: mysql.PoolConnection ) => {
+
+            if (errorConect){
+                callback( errorConect.message ); // no conectado!
+            } 
+
+            connection.query( consulta, datos, ( err, results, fields ) => {
+
+                // soltar la conexion
+                connection.release();
+
+                if( err ){
+                    console.log('ERROR QUERY: ' + consulta );
+                    callback( err.message );
+                }
+                callback( null, results );
             });
 
             // console.log(query.sql);
@@ -67,12 +91,10 @@ export default class Conexion {
                 connection.release();
 
                 if( err ){
-                    console.log('ERROR QUERY');
-                    console.log( err );
-                    return callback( err );
+                    console.log('ERROR QUERY: ' + consulta );
+                    callback( err.message );
                 }
-
-                callback( results.insertId );
+                callback( null, results.insertId );
             
             });
         });
@@ -93,12 +115,10 @@ export default class Conexion {
                 connection.release();
 
                 if( err ){
-                    console.log('ERROR QUERY');
-                    console.log( err );
-                    return callback( err );
+                    console.log('ERROR QUERY: ' + consulta );
+                    callback( err.message );
                 }
-
-                callback( results.changedRows );
+                callback( null, results.changedRows );
             
             });
         });
@@ -119,12 +139,10 @@ export default class Conexion {
                 connection.release();
 
                 if( err ){
-                    console.log('ERROR QUERY');
-                    console.log( err );
-                    return callback( err );
+                    console.log('ERROR QUERY: ' + consulta );
+                    callback( err.message );
                 }
-
-                callback( results.affectedRows  );
+                callback( null, results.affectedRows  );
             
             });
         });

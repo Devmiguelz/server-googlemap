@@ -9,7 +9,7 @@ export const DATABASES = {
             host       : '127.0.0.1',
             user       : 'root',
             password   : '',
-            database   : 'mapas',
+            database   : 'altamira',
             connectionLimit     : 10,
         }
     },

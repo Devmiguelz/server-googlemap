@@ -19,10 +19,10 @@ export default class UsuarioManager {
 
         return new Promise(( resolve, reject ) => {
 
-            Conexion.ejecutarQuery( conexion, consulta, ( err: MysqlError, results: any ) => {
+            Conexion.ejecutarQuery( conexion, consulta, ( err: string, results: any ) => {
 
                 if( err ) {
-                    return reject( err.message );
+                    reject( err );
                 } else {
                     resolve( results );
                 }
