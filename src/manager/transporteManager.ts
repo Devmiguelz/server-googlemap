@@ -27,7 +27,7 @@ export default class TrasnporteManager {
             Conexion.ejecutarInsert(conexion, consulta, data, (err: string, results: any) => {
 
                 if (err) {
-                    reject(err);
+                    reject( err );
                 } else {
                     resolve(results);
                 }
@@ -149,7 +149,7 @@ export default class TrasnporteManager {
 
     cargarPreruta( conexion: string, codruta: string, flujo: string ) {
 
-        const consulta = `SELECT * FROM tra_preruta pr WHERE pr.codruta=${ codruta } AND pr.flujo=${ flujo }`;
+        const consulta = `SELECT * FROM tra_preruta pr WHERE pr.codruta=${ codruta } AND pr.flujo='${ flujo }'`;
 
         return new Promise(( resolve, reject ) => {
 
@@ -166,7 +166,7 @@ export default class TrasnporteManager {
 
     buscarPreruta( conexion: string, codusuario: string, flujo: string, codruta: string ) {
 
-        const consulta = `SELECT * FROM tra_preruta WHERE codusuario=${ codusuario } AND flujo=${ flujo } AND codruta=${ codruta }`;
+        const consulta = `SELECT * FROM tra_preruta WHERE codusuario=${ codusuario } AND flujo='${ flujo }' AND codruta=${ codruta }`;
 
         return new Promise(( resolve, reject ) => {
 
@@ -279,10 +279,9 @@ export default class TrasnporteManager {
         const consulta = `SELECT * FROM tra_intervaloruta ir 
                         INNER JOIN tra_vehiculoruta vr ON ir.codvehiculoruta=vr.cod 
                         WHERE ir.codvehiculoruta=? AND DATE(ir.finruta)=?`;
-
         const data = [ 
             codvehiculoruta,  
-            fecha != null && fecha != '' ? Funciones.convertFechaAño(fecha) : `DATE(NOW())`
+            fecha != null && fecha != '' ? Funciones.convertFechaAño(fecha) : 'DATE(NOW())'
         ];
 
         return new Promise(( resolve, reject ) => {
@@ -328,11 +327,11 @@ export default class TrasnporteManager {
         }); 
     }
 
-    validarFinRutaFecha( conexion: string, codvehiculoruta: string, flujo: string, dia: string, fecha: string) {
+    validarFinRutaFecha( conexion: string, codruta: string, flujo: string, dia: string, fecha: string) {
         
         const consulta = `SELECT * FROM tra_intervaloruta ir INNER JOIN tra_vehiculoruta vr ON ir.codvehiculoruta=vr.cod  
-                            WHERE vr.codruta=${ codvehiculoruta } AND vr.dia=${ dia } AND vr.flujo='${ flujo }' 
-                            AND DATE(ir.finruta)=DATE(${ fecha })`;
+                            WHERE vr.codruta=${ codruta } AND vr.dia=${ dia } AND vr.flujo='${ flujo }' 
+                            AND DATE(ir.finruta)=DATE('${ fecha }')`;     
 
         return new Promise(( resolve, reject ) => {
 
@@ -391,7 +390,7 @@ export default class TrasnporteManager {
 
         consulta = `SELECT * FROM tra_asistencia t 
         WHERE t.codvehiculoruta =${ codvehiculoruta } AND ${ campoString }=${ cod } 
-        AND DATE(t.fecha)=DATE(${ fechaConsulta })`;
+        AND DATE(t.fecha)=DATE('${ fechaConsulta }')`;
 
         return new Promise(( resolve, reject ) => {
 
@@ -650,7 +649,7 @@ export default class TrasnporteManager {
         flujo: string, latitud: string, longitud: string, 
         estumatricula: string, codusuario: string, online: string = '', callback: Function ) {
 
-        this.buscarVehiculoRuta( conexion, codvehiculoruta ).then(async (datoRuta:any) => {
+        await this.buscarVehiculoRuta( conexion, codvehiculoruta ).then(async (datoRuta:any) => {
             if( datoRuta.length > 0 ) {
 
                 console.log('COD RUTA ' + datoRuta[0].codruta);
@@ -660,26 +659,45 @@ export default class TrasnporteManager {
 
                 let codigoUsuario = codusuario;
                 if( estumatricula != null && estumatricula != '' ) {
-                    await this.buscarUsuarioxCodesmtumatricula( conexion, estumatricula ).then((usuario: any) =>{
+                    await this.buscarUsuarioxCodesmtumatricula( conexion, estumatricula ).then(async (usuario: any) =>{
                         if( usuario.length > 0 && usuario[0].cod != null && usuario[0].cod != ''){
                             codigoUsuario = usuario[0].cod;
-                        }
+                            await this.guardarTraRutaInit(conexion,codvehiculoruta,codruta,flujo,latitud,longitud,codigoUsuario,fechaPunto,online)
+                            .then( (idRuta: any) => {
+                                callback( null, idRuta );
+                            });
+                        } 
                     });
-                    console.log('CONSULTA USUARIO');
+                }else{
+                    await this.guardarTraRutaInit(conexion,codvehiculoruta,codruta,flujo,latitud,longitud,codigoUsuario,fechaPunto,online)
+                    .then( (idRuta: any) => {
+
+                        callback( null, idRuta );
+
+                    }).catch((err: any) => {callback( err ); });
                 }
+            }else{
+                callback( null, -1 );
+            }
+            
+        }).catch((err: any) => {callback( err ); });
+    }
 
-                console.log('AQUI VAMOS');
+    async guardarTraRutaInit(  conexion: string, codvehiculoruta: string, codruta: string, flujo: string, latitud: string,
+        longitud: string, codigoUsuario: string, fechaPunto: string, online: string ) {
 
-                await this.guardarTraRuta( conexion, codvehiculoruta, flujo, latitud, longitud, codigoUsuario, fechaPunto, online )
-                .then((idRuta: any) => {
+        return new Promise(async ( resolve, reject ) => { 
+            
+            await this.guardarTraRuta( conexion, codvehiculoruta, flujo, latitud, longitud, codigoUsuario, fechaPunto, online )
+            .then(async (idRuta: any) => {
 
-                    console.log('ID RUTA '+ idRuta);
+                console.log('ID RUTA '+ idRuta);
 
-                    // Validamos si insertó y si es puntos de usuario y no se seguimiento, para actualizar la geolocazación
-                    if( idRuta != -1 && codigoUsuario != null && codigoUsuario != '' ) {
+                // Validamos si insertó y si es puntos de usuario y no se seguimiento, para actualizar la geolocazación
+                if( idRuta != -1 && codigoUsuario != null && codigoUsuario != '' ) {
 
                         // Ahora validamos si la ruta esta habilitada para actualizar su Preruta
-                        this.buscarTesRuta( conexion, codruta).then(async (datoRuta: any) => {
+                        await this.buscarTesRuta( conexion, codruta).then(async (datoRuta: any) => {
                             if( datoRuta.length > 0 && datoRuta[0].preruta == '1') {
                                 await this.buscarPreruta(conexion, codigoUsuario, flujo, codruta).then(async (datoPreruta: any) => {
                                     if( datoPreruta.length > 0 ) {
@@ -688,7 +706,7 @@ export default class TrasnporteManager {
                                             && datoPreruta[0].longitude != null && datoPreruta[0].longitude != "") ) {
                                             this.actualizarPreruta( conexion, datoPreruta[0].cod, latitud, longitud );
                                         }
-                                        callback( null, idRuta );
+                                        resolve( idRuta );
                                    }else{
                                         // No tiene preruta, insertamos con el orden y la coordenada actual
                                         let orden = 0;
@@ -698,29 +716,28 @@ export default class TrasnporteManager {
                                             }else{
                                                 orden++;
                                             }
-                                            this.agregarPreruta( conexion, codruta, flujo, codusuario, orden.toString(), latitud, longitud);
+                                            this.agregarPreruta( conexion, codruta, flujo, codigoUsuario, orden.toString(), latitud, longitud);
                                         }).catch((err: any) => {
-                                            callback( err );
+                                            reject( err );
                                         });
-                                        callback( null, idRuta );
+                                        resolve( idRuta );
                                     }
                                 }).catch((err: any) => {
-                                    callback( err );
+                                    reject( err );
                                 });
-                                callback( null, idRuta );
+                                resolve( idRuta );
+                            }else{
+                                resolve( idRuta );                                
                             }
                         }).catch((err: any) => {
-                            callback( err );
+                            reject( err );
                         });
-                    }else{
-                        callback( null, idRuta);
-                    }
-                });
-            }else{
-                callback( null, -1 );
-            }
-        }).catch((err: any) => {
-            callback( err );
+                }else{
+                    resolve( idRuta);
+                }
+            }).catch((err: any) => {
+                reject( err );
+            });
         });
     }
 }

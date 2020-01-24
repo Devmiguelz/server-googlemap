@@ -1,8 +1,8 @@
-import Conexion from '../database/conexion';
 import TrasnporteManager from '../manager/transporteManager';
 import UsuarioManager from '../manager/usuarioManager';
 import { Funciones } from '../manager/funciones';
 import moment from 'moment';
+import * as socket from "../sockets/sockets";
 
  export default class TrasnporteControllers {
 
@@ -13,59 +13,63 @@ import moment from 'moment';
 
     async iniciarRuta( conexion: string, codvehiculoruta: string, codusuario: string, tipoapp: string, callback: Function ) {
         let result = { success: false, message: 'No se encontro el tipo de aplicacion', codigo: 0 };
-        switch ( tipoapp ) {
-            case "m":
-                await this.transporte.validarInicioRuta( conexion, codvehiculoruta )
-                .then(async (datoRutaInicio: any) => {
+        try {
+            switch ( tipoapp ) {
+                case "m":
+                    await this.transporte.validarInicioRuta( conexion, codvehiculoruta )
+                    .then(async (datoRutaInicio: any) => {
 
-                    console.log('VALIDAR RUTA'); 
-                    
-                    if(datoRutaInicio.length == 0) { // La ruta no debe estar iniciada
+                        console.log('VALIDAR RUTA');  
                         
-                        await this.transporte.agregarInicioRuta( conexion, codvehiculoruta, codusuario )
-                        .then((codintervalo: any) => { 
-
-                            result.success = true;
-                            result.message = 'Ruta Iniciada';
-                            result.codigo = codintervalo;
+                        if(datoRutaInicio.length == 0) { // La ruta no debe estar iniciada
                             
-                            if( codintervalo != -1 ) {
+                            await this.transporte.agregarInicioRuta( conexion, codvehiculoruta, codusuario )
+                            .then((codintervalo: any) => { 
+
+                                result.success = true;
+                                result.message = 'Ruta Iniciada';
+                                result.codigo = codintervalo;
                                 
-                                const hora = Funciones.moment().hour();
-                                const minuto = Funciones.moment().minute();
-                                
-                                this.transporte.buscarRuta( conexion, codvehiculoruta )
-                                .then((datoRuta: any) => {
-                                    if( datoRuta.length > 0 ) {
-                                        console.log('BUSCAR RUTA');
-                                        // Buscamos los padres para enviarle la notificacion
-                                        this.transporte.cargaUsuarioPadres( conexion, codvehiculoruta, datoRuta[0].flujo, ( err: string, dataTablepadres: any) => {
-                                            if( dataTablepadres.length > 0 ) {
+                                if( codintervalo != -1 ) {
+                                    
+                                    const hora = Funciones.moment().hour();
+                                    const minuto = Funciones.moment().minute();
+                                    
+                                    this.transporte.buscarRuta( conexion, codvehiculoruta )
+                                    .then((datoRuta: any) => {
+                                        if( datoRuta.length > 0 ) {
+                                            console.log('BUSCAR RUTA');
+                                            // Buscamos los padres para enviarle la notificacion
+                                            this.transporte.cargaUsuarioPadres( conexion, codvehiculoruta, datoRuta[0].flujo, ( err: string, dataTablepadres: any) => {
+                                                if( dataTablepadres.length > 0 ) {
 
-                                                // envio de notificaiones padres
-                                            }
-                                        });
+                                                    // envio de notificaiones padres
+                                                }
+                                            });
 
-                                        this.transporte.cargaUsuarioEstudiantes(conexion, codvehiculoruta, datoRuta[0].flujo, ( err: string, dataTableEstudiantes: any) => {
-                                            if( dataTableEstudiantes.length > 0 ) {
+                                            this.transporte.cargaUsuarioEstudiantes(conexion, codvehiculoruta, datoRuta[0].flujo, ( err: string, dataTableEstudiantes: any) => {
+                                                if( dataTableEstudiantes.length > 0 ) {
 
-                                                // envio de notificaiones estudiantes
-                                            }
-                                        });
-                                    }
-                                }).catch((err: any) => {callback(err);});
-                            }
-                        }).catch((err: any) => {callback(err);});
-                    }else{
-                        result.message = 'Ruta ya esta iniciada';
-                    }
-                    console.log('RETORNA');
+                                                    // envio de notificaiones estudiantes
+                                                }
+                                            });
+                                        }
+                                    });
+                                }
+                            });
+                        }else{
+                            result.message = 'Ruta ya esta iniciada';
+                        }
+                        console.log('RETORNA');
+                        callback( null, result );
+                    });
+                    break;
+                default:
                     callback( null, result );
-                }).catch((err: any) => {callback(err);});
-                break;
-            default:
-                callback( null, result );
-                break;
+                    break;
+            }
+        } catch (error) {
+            callback(error);
         }
     }
 
@@ -151,7 +155,7 @@ import moment from 'moment';
             rutaIniciada: false,
             rutaFinalizada: false
         }
-        this.transporte.buscarVehiculoRuta( conexion, codvehiculoruta ).then(async ( datoRuta: any ) => {
+        await this.transporte.buscarVehiculoRuta( conexion, codvehiculoruta ).then(async ( datoRuta: any ) => {
                  
             if( datoRuta.length > 0 ) {
 
@@ -160,16 +164,21 @@ import moment from 'moment';
                 const fechaHoy = Funciones.fechaActualAño();
                 const fechaSubir = Funciones.convertFechaAño(fechasubir);
 
+                console.log(fechaHoy);
+                console.log(fechaSubir);
+
                 // Validamos si los puntos a subir no son de hoy
                 if( fechaHoy === fechaSubir ) {
 
                     Promise.all([
                         await this.transporte.validarInicioRuta(conexion, codvehiculoruta),
                         await this.transporte.validarFinRuta(conexion, codvehiculoruta)
-                    ]).then(async (data: any) =>{
+                    ]).then(async (data: any) => {
 
-                        result.rutaIniciada = data[0].length > 0 ? true : false;
-                        result.rutaFinalizada = data[1].length > 0 ? true : false;
+                        if(data[0].length > 0)
+                            result.rutaIniciada = true;
+                        if(data[1].length > 0)
+                            result.rutaFinalizada = true;
 
                         console.log('ENTRAMOS');
 
@@ -181,6 +190,11 @@ import moment from 'moment';
                             const codruta = datoRuta[0].codruta;
                             const flujo = datoRuta[0].flujo;
                             const mes = Funciones.mesActual();
+
+                            // Armamos el ID de la sala 
+                            const room = 'ruta' + codvehiculoruta + 'flujo' + flujo + 'conec' + conexion;                           
+                            // Emitimos  traves del evento    
+                            socket.emitirSocket( room, 'listen-ubicacion-offline-ruta', listaSeguimiento);
 
                             for (const itemPunto of listaAsistencia) {
 
@@ -259,7 +273,7 @@ import moment from 'moment';
                                                 console.log('AGREGAR ASISTENCIA NO: ');
                                             }
                                             if( cambiosOld != result.cambios ) {
-                                                this.transporte.agregarGeoPosicionDeRuta( conexion, codvehiculoruta, flujo, latitud, longitud, '', '', '0', (err: string, codRegistroPosicion: number) => {
+                                                await this.transporte.agregarGeoPosicionDeRuta( conexion, codvehiculoruta, flujo, latitud, longitud, '', '', '0', (err: string, codRegistroPosicion: number) => {
                                                     if( err ) callback( err );
                                                     if( codRegistroPosicion != -1 ) {
                                                         result.cambios++;
@@ -269,8 +283,8 @@ import moment from 'moment';
                                             }
                                         }
                                     });                                                                               
-                                }else if( (latitud != null && latitud != "") && (longitud != null && longitud != "") ) {
-                                    this.transporte.agregarGeoPosicionDeRuta( conexion, codvehiculoruta, flujo, latitud, longitud, '', '', '0', (err: string, codRegistroPosicion: number) =>{
+                                }else if( !Funciones.isVacia(latitud) && !Funciones.isVacia(longitud) ) {
+                                    await this.transporte.agregarGeoPosicionDeRuta( conexion, codvehiculoruta, flujo, latitud, longitud, '', '', '0', (err: string, codRegistroPosicion: number) =>{
                                         if( err ) callback( err );
                                         if( codRegistroPosicion != -1 ) {
                                             result.cambios++;
@@ -310,8 +324,8 @@ import moment from 'moment';
     }
 
     guardarRutaOnline( conexion: string, codvehiculoruta: string, 
-                            flujo: string, latitud: string, longitud: string, token: string, 
-                            callback: Function ) {
+                        flujo: string, latitud: string, longitud: string, token: string, 
+                        callback: Function ) {
 
         let result = { success: false, message: '' };
         if( this.validarToken( conexion, codvehiculoruta, flujo, latitud, longitud, token ) ){
@@ -327,45 +341,52 @@ import moment from 'moment';
         }
     }
 
-    guardarRuta( conexion: string, codvehiculoruta: string, flujo: string, latitud: string, longitud: string, callback: Function ) {
+    async guardarRuta( conexion: string, codvehiculoruta: string, flujo: string, latitud: string, longitud: string, callback: Function ) {
 
         let result = { success: false, message: '' };
         const dia = Funciones.diaSemanaActual().toString();
-        let rutaIniciada = false;
-        let rutaFinalizada = false;
-
-        this.transporte.buscarVehiculoRuta( conexion, codvehiculoruta ).then(( datoRuta: any ) => {
+       
+        await this.transporte.buscarVehiculoRuta( conexion, codvehiculoruta ).then(async ( datoRuta: any ) => {
                     
             if( datoRuta.length > 0 ) {
+                const codruta = datoRuta[0].codruta;
                 Promise.all([
-                    this.transporte.validarInicioRuta(conexion, codvehiculoruta),
-                    this.transporte.validarFinRutaFecha(conexion, codvehiculoruta, flujo, dia, Funciones.fechaActualAño())
-                ]).then(async (data: any) =>{
+                    await this.transporte.validarInicioRuta(conexion, codvehiculoruta),
+                    await this.transporte.validarFinRutaFecha(conexion, codruta, flujo, dia, Funciones.fechaActualAño())
+                ]).then(async (data: any) => {
 
-                    rutaIniciada = data[0].length > 0 ? true : false;
-                    rutaFinalizada = data[1].length > 0 ? true : false;
+                    let rutaIniciada = false;
+                    let rutaFinalizada = false;
+
+                    if(data[0].length > 0)
+                        rutaIniciada = true;
+                    if(data[1].length > 0)
+                        rutaFinalizada = true;
 
                     if (rutaIniciada && !rutaFinalizada) { // La ruta debe estar iniciada y no debe estar cerrada
 
-                        let codRegistroPosicion = 0;
                         if ( !Funciones.isVacia(longitud) && !Funciones.isVacia(latitud) ) {
-                            this.transporte.agregarGeoPosicionDeRuta( conexion, codvehiculoruta, flujo, latitud, longitud, '', '', '', (err: string, codruta: number) => {
+
+                            await this.transporte.agregarGeoPosicionDeRuta( conexion, codvehiculoruta, flujo, latitud, longitud, '2102', '', '', (err: string, codruta: number) => {
 
                                 if( err ) {
                                     callback( err );
                                 }
 
                                 if( codruta != -1 ) {
-                                    codRegistroPosicion = codruta;
-                                }
 
-                                if( codRegistroPosicion != 0 ){
                                     result.success = true;
                                     result.message = 'Posicion Guardada';
+
+                                    // Armamos el ID de la sala 
+                                    const room = 'ruta' + codvehiculoruta + 'flujo' + flujo + 'conec' + conexion;  
+                                    // Armamos la data de la posicion
+                                    const payload = { lat: latitud, lng: longitud };                      
+                                    // Emitimos  traves del evento    
+                                    socket.emitirSocket( room, 'listen-ubicacion-online-ruta', payload);
                                 }else{
                                     result.message = 'No se registró la posición';
                                 }
-
                                 callback( null, result);
                             });
                         }

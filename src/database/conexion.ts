@@ -40,13 +40,10 @@ export default class Conexion {
                 connection.release();
 
                 if( err ){
-                    console.log('ERROR QUERY: ' + consulta );
                     callback( err.message );
                 }
                 callback( null, results );
             });
-
-            // console.log(query.sql);
         });
         
     }
@@ -65,13 +62,10 @@ export default class Conexion {
                 connection.release();
 
                 if( err ){
-                    console.log('ERROR QUERY: ' + consulta );
                     callback( err.message );
                 }
                 callback( null, results );
             });
-
-            // console.log(query.sql);
         });
         
     }
@@ -89,14 +83,20 @@ export default class Conexion {
                 
                 // soltar la conexion
                 connection.release();
-
+    
                 if( err ){
-                    console.log('ERROR QUERY: ' + consulta );
-                    callback( err.message );
+                    if(err.code == 'ER_NO_REFERENCED_ROW_2') {
+                        callback('No se puede agregar, llave de referencia externa no encontrada');
+                    }else{
+                        callback( err.message );
+                    }
                 }
-                callback( null, results.insertId );
+                if(results != null && results != undefined) {
+                    callback( null, results.insertId );
+                }
+                callback( null, -1);
+            });    
             
-            });
         });
     }
 
@@ -115,11 +115,12 @@ export default class Conexion {
                 connection.release();
 
                 if( err ){
-                    console.log('ERROR QUERY: ' + consulta );
                     callback( err.message );
                 }
-                callback( null, results.changedRows );
-            
+                if(results != null && results != undefined) {
+                    callback( null, results.changedRows );
+                }
+                callback( null, -1);                        
             });
         });
     }
@@ -139,11 +140,12 @@ export default class Conexion {
                 connection.release();
 
                 if( err ){
-                    console.log('ERROR QUERY: ' + consulta );
                     callback( err.message );
                 }
-                callback( null, results.affectedRows  );
-            
+                if(results != null && results != undefined) {
+                    callback( null, results.affectedRows );
+                }
+                callback( null, -1);                             
             });
         });
     }

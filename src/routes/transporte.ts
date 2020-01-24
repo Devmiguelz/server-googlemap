@@ -1,29 +1,25 @@
 import { Router, Request, Response } from "express";
 import TrasnporteControllers from '../controllers/transporteControllers';
-import { rutabus } from "../sockets/sockets";
-import { Ruta } from "../models/ruta";
 import TrasnporteManager from "../manager/transporteManager";
+import Server from '../server/server';
 
 const router = Router();
 const transporte = new TrasnporteControllers();
 const transporteM = new TrasnporteManager();
 
 // POST - Iniciar la ruta
-router.post('/padres', ( req: Request, res: Response  ) => {
+router.post('/socket', ( req: Request, res: Response  ) => {
 
-    const { codvehiculoruta, flujo, conec } = req.body;
+    const server = Server.instance;
+    const payload = { lat: 14252, lng: -74145 };   
+    server.io.emit('listen-ubicacion-online-ruta', payload);
 
-    transporteM.cargaUsuarioPadres( conec, codvehiculoruta, flujo, ( err: string, data: any) => {
-
-        if( err ){
-            return res.status(500).json({
-                success: false,
-                mensaje: 'ERROR: ' + err
-            });
-        }
-
-        res.json( data );
+    server.io.clients( (err: any, client: any) => {
+        res.json({ ok:true, mensaje: client }); 
     });
+
+    // res.json({ok:true,mensaje:'emitido'});
+
 });
 
 // POST - Iniciar la ruta
